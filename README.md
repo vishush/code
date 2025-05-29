@@ -1,13 +1,12 @@
-// File: com/dp/entity/Application.java
+// File: com/dp/entity/CategoryLevel.java
 package com.dp.entity;
 
 import lombok.Data;
-import java.util.List;
 
 @Data
-public class Application {
-    private String applicationId;
-    private List<Transaction> transactions;
+public class CategoryLevel {
+    private String id;
+    private String name;
 }
 
 
@@ -23,9 +22,22 @@ public class Transaction {
     private LocalDate date;
     private double amount;
     private String description;
-    private String categoryLevelOne;
-    private String categoryLevelTwo;
-    private String categoryLevelThree;
+    private CategoryLevel categoryLevelOne;   // High-Level Category (e.g., Income, Expense)
+    private CategoryLevel categoryLevelTwo;   // Master Category
+    private CategoryLevel categoryLevelThree; // Detail Category
+}
+
+
+// File: com/dp/entity/Application.java
+package com.dp.entity;
+
+import lombok.Data;
+import java.util.List;
+
+@Data
+public class Application {
+    private String applicationId;
+    private List<Transaction> transactions;
 }
 
 
@@ -76,6 +88,8 @@ import java.util.stream.Collectors;
 
 public class IncomeUtils {
 
+    private static final Set<String> allowedDetailCategoryIdsForIncome = Set.of("29", "31");
+
     public static Map<YearMonth, Double> incomeByMonth(List<Transaction> transactions) {
         return transactions.stream()
                 .filter(IncomeUtils::isIncome)
@@ -86,10 +100,8 @@ public class IncomeUtils {
     }
 
     private static boolean isIncome(Transaction tx) {
-        return "CREDIT".equalsIgnoreCase(tx.getCategoryLevelOne())
-                && "INCOME".equalsIgnoreCase(tx.getCategoryLevelTwo())
-                && ("Paychecks/Salary".equalsIgnoreCase(tx.getCategoryLevelThree())
-                || "Retirement Income".equalsIgnoreCase(tx.getCategoryLevelThree()));
+        return "INCOME".equalsIgnoreCase(tx.getCategoryLevelOne().getName()) &&
+                allowedDetailCategoryIdsForIncome.contains(tx.getCategoryLevelTwo().getId());
     }
 
     public static boolean averageIncomeOverThreshold(Map<YearMonth, Double> incomeMap, int months, double threshold) {
